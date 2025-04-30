@@ -1,0 +1,103 @@
+/* Theme Variables */
+
+/* Light Themes */
+.ocean-breeze {
+  --color-primary: #38bdf8;
+  --color-secondary: #0ea5e9;
+  --color-accent: #0284c7;
+  --color-background: #f0f9ff;
+  --color-text: #0f172a;
+  --font-body: 'Inter', sans-serif;
+  --font-heading: 'Montserrat', sans-serif;
+}
+
+.sunrise-glow {
+  --color-primary: #fb923c;
+  --color-secondary: #f97316;
+  --color-accent: #ea580c;
+  --color-background: #fff7ed;
+  --color-text: #431407;
+  --font-body: 'Roboto', sans-serif;
+  --font-heading: 'Playfair Display', serif;
+}
+
+.minimal-mist {
+  --color-primary: #64748b;
+  --color-secondary: #475569;
+  --color-accent: #334155;
+  --color-background: #f8fafc;
+  --color-text: #0f172a;
+  --font-body: 'Lato', sans-serif;
+  --font-heading: 'Helvetica Neue', sans-serif;
+}
+
+.soft-leaf {
+  --color-primary: #84cc16;
+  --color-secondary: #65a30d;
+  --color-accent: #4d7c0f;
+  --color-background: #f7fee7;
+  --color-text: #1a2e05;
+  --font-body: 'Nunito', sans-serif;
+  --font-heading: 'Nunito Sans', sans-serif;
+}
+
+.neon-day {
+  --color-primary: #3b82f6; 
+  --color-secondary: #2563eb;
+  --color-accent: #1d4ed8;
+  --color-background: #eff6ff;
+  --color-text: #1e3a8a;
+  --font-body: 'Quicksand', sans-serif;
+  --font-heading: 'Poppins', sans-serif;
+}
+
+/* Dark Themes */
+.midnight-code {
+  --color-primary: #22d3ee;
+  --color-secondary: #06b6d4;
+  --color-accent: #0891b2;
+  --color-background: #0f172a;
+  --color-text: #e2e8f0;
+  --font-body: 'Source Code Pro', monospace;
+  --font-heading: 'Space Mono', monospace;
+}
+
+.galaxy-grape {
+  --color-primary: #c084fc;
+  --color-secondary: #a855f7;
+  --color-accent: #9333ea;
+  --color-background: #1a103d;
+  --color-text: #e9d5ff;
+  --font-body: 'Rubik', sans-serif;
+  --font-heading: 'Exo 2', sans-serif;
+}
+
+.forest-night {
+  --color-primary: #4ade80;
+  --color-secondary: #22c55e;
+  --color-accent: #16a34a;
+  --color-background: #0d160b;
+  --color-text: #dcfce7;
+  --font-body: 'Merriweather', serif;
+  --font-heading: 'Bitter', serif;
+}
+
+.cyber-noir {
+  --color-primary: #ec4899;
+  --color-secondary: #db2777;
+  --color-accent: #be185d;
+  --color-background: #18181b;
+  --color-text: #f5f5f5;
+  --font-body: 'IBM Plex Sans', sans-serif;
+  --font-heading: 'Rajdhani', sans-serif;
+}
+
+.solar-void {
+  --color-primary: #fcd34d;
+  --color-secondary: #fbbf24;
+  --color-accent: #f59e0b;
+  --color-background: #030711;
+  --color-text: #fef3c7;
+  --font-body: 'Titillium Web', sans-serif;
+  --font-heading: 'Orbitron', sans-serif;
+}
