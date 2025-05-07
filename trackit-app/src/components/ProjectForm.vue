@@ -1,136 +1,171 @@
 <template>
-  <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-md">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl font-bold text-gray-800 dark:text-white">
-          {{ isEditing ? 'Edit Project' : 'Create New Project' }}
-        </h2>
-        <button @click="closeModal" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-          &times;
-        </button>
-      </div>
-      
-      <form @submit.prevent="submitForm">
-        <div class="mb-4">
-          <label for="title" class="block text-gray-700 dark:text-gray-300 mb-1">Project Name</label>
-          <input 
-            id="name"
-            v-model="form.title"
-            type="text"
-            class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white"
-            required
-          />
-        </div>
-        
-        <div class="mb-4">
-          <label for="description" class="block text-gray-700 dark:text-gray-300 mb-1">Description</label>
-          <textarea 
-            id="description"
-            v-model="form.description"
-            class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white"
-            rows="3"
-          ></textarea>
-        </div>
-        
-        <div class="mb-4">
-          <label for="due_date" class="block text-gray-700 dark:text-gray-300 mb-1">Due Date</label>
-          <input 
-            id="due_date"
-            v-model="form.due_date"
-            type="date"
-            class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white"
-          />
-        </div>
-        
-        <div class="mb-4">
-          <label for="status" class="block text-gray-700 dark:text-gray-300 mb-1">Status</label>
-          <select 
-            id="status"
-            v-model="form.status"
-            class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white"
-          >
-            <option value="Not Started">Not Started</option>
-            <option value="In Progress">In Progress</option>
-            <option value="On Hold">On Hold</option>
-            <option value="Completed">Completed</option>
-          </select>
-        </div>
-        
-        <div class="mb-4">
-          <label for="progress" class="block text-gray-700 dark:text-gray-300 mb-1">
-            Progress: {{ form.progress }}%
-          </label>
-          <input 
-            id="progress"
-            v-model="form.progress"
-            type="range"
-            min="0"
-            max="100"
-            class="w-full"
-          />
-        </div>
-        
-        <div class="flex justify-end space-x-2">
-          <button 
-            type="button"
-            @click="closeModal"
-            class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-          >
-            Cancel
-          </button>
-          <button 
-            type="submit"
-            class="px-4 py-2 bg-primary text-white rounded hover:bg-secondary"
-          >
-            {{ isEditing ? 'Update' : 'Create' }}
-          </button>
-        </div>
-      </form>
+  <form @submit.prevent="handleSubmit" class="p-6 bg-white dark:bg-gray-900 rounded-lg shadow-md w-full max-w-xl mx-auto space-y-4">
+    <h2 class="text-2xl font-semibold text-gray-800 dark:text-white">{{ isEditing ? 'Edit Project' : 'New Project' }}</h2>
+    
+    <!-- Error message display -->
+    <div v-if="errorMessage" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative dark:bg-red-900 dark:text-red-300 dark:border-red-600">
+      {{ errorMessage }}
     </div>
-  </div>
+    
+    <div>
+      <label class="block text-sm text-gray-700 dark:text-gray-200">Title</label>
+      <input v-model="form.title" type="text" required class="input" />
+    </div>
+    <div>
+      <label class="block text-sm text-gray-700 dark:text-gray-200">Description</label>
+      <textarea v-model="form.description" rows="3" class="input"></textarea>
+    </div>
+    <div>
+      <label class="block text-sm text-gray-700 dark:text-gray-200">Due Date</label>
+      <input v-model="form.due_date" type="date" class="input" />
+    </div>
+    <div>
+      <label class="block text-sm text-gray-700 dark:text-gray-200">Tier</label>
+      <select v-model="form.tier" class="input">
+        <option value="1">Tier 1</option>
+        <option value="2">Tier 2</option>
+        <option value="3">Tier 3</option>
+      </select>
+    </div>
+    <div>
+      <label class="block text-sm text-gray-700 dark:text-gray-200">GitHub Link</label>
+      <input v-model="form.git_link" type="url" placeholder="https://github.com/..." class="input" />
+    </div>
+    <div>
+      <label class="block text-sm text-gray-700 dark:text-gray-200">Tech Stack (comma-separated)</label>
+      <input v-model="form.tech_stack" type="text" placeholder="Vue, Supabase, Tailwind" class="input" />
+    </div>
+    <div class="flex justify-end gap-4">
+      <button type="button" @click="$emit('cancel')" class="px-4 py-2 rounded bg-gray-200 dark:bg-gray-700 text-sm">
+        Cancel
+      </button>
+      <button 
+        type="submit" 
+        class="px-4 py-2 rounded bg-purple-600 text-white hover:bg-purple-700 text-sm"
+        :disabled="isSubmitting"
+      >
+        {{ isSubmitting ? 'Processing...' : (isEditing ? 'Update' : 'Create') }}
+      </button>
+    </div>
+  </form>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import { supabase } from '../supabase/client'; // Adjust if your supabase client path is different
 
 const props = defineProps({
-  project: {
-    type: Object,
-    default: null
-  }
+  project: { type: Object, default: () => null }
 });
 
-const emit = defineEmits(['close', 'save']);
+const emit = defineEmits(['submitted', 'cancel']);
 
-const form = ref({
-  title: '',            // Changed from 'name' to 'title'
-  description: '',
-  status: 'active',     // Changed default to match your schema
-  due_date: '',
-  progress: 0
+// Get user from session instead of helper
+const user = ref(null);
+const isSubmitting = ref(false);
+const errorMessage = ref('');
+
+// Get current user
+onMounted(async () => {
+  const { data } = await supabase.auth.getSession();
+  if (data.session) {
+    user.value = data.session.user;
+  }
 });
 
 const isEditing = computed(() => !!props.project);
 
+const form = ref({
+  title: '',
+  description: '',
+  due_date: '',
+  tier: 1,
+  git_link: '',
+  tech_stack: ''
+});
+
+// Initialize form with project data if editing
 onMounted(() => {
   if (props.project) {
-    form.value = { ...props.project };
-    // Format date for input
-    if (form.value.due_date) {
-      const date = new Date(form.value.due_date);
-      form.value.due_date = date.toISOString().split('T')[0];
-    }
+    form.value = {
+      title: props.project.title || '',
+      description: props.project.description || '',
+      due_date: props.project.due_date || '',
+      tier: props.project.tier || 1,
+      git_link: props.project.git_link || '',
+      // Convert array back to comma-separated string if needed
+      tech_stack: Array.isArray(props.project.tech_stack) 
+        ? props.project.tech_stack.join(', ') 
+        : props.project.tech_stack || ''
+    };
   }
 });
 
-const closeModal = () => {
-  emit('close');
-};
+const handleSubmit = async () => {
+  if (!user.value) {
+    errorMessage.value = 'You must be logged in to create/edit a project';
+    return;
+  }
 
-const submitForm = () => {
-  emit('save', {
-    ...form.value,
-    id: props.project?.id
-  });
+  try {
+    isSubmitting.value = true;
+    errorMessage.value = '';
+    
+    // Prepare data payload
+    const payload = {
+      title: form.value.title,
+      description: form.value.description,
+      due_date: form.value.due_date || null,
+      tier: parseInt(form.value.tier, 10),
+      git_link: form.value.git_link || null,
+      // Convert comma-separated string to array, handle nulls
+      tech_stack: form.value.tech_stack ? form.value.tech_stack.split(',').map(t => t.trim()) : []
+    };
+    
+    // Only add user_id for new projects
+    if (!isEditing.value) {
+      payload.user_id = user.value.id;
+      payload.status = 'active'; // Set default status
+    }
+    
+    let result;
+    
+    if (isEditing.value) {
+      // Update existing project
+      const { data, error } = await supabase
+        .from('projects')
+        .update(payload)
+        .eq('id', props.project.id)
+        .select();
+        
+      if (error) throw error;
+      result = { data, error };
+      
+    } else {
+      // Insert new project
+      const { data, error } = await supabase
+        .from('projects')
+        .insert(payload)
+        .select();
+        
+      if (error) throw error;
+      result = { data, error };
+    }
+    
+    // Handle result
+    if (result.error) {
+      throw result.error;
+    }
+    
+    // On success, emit the submitted event with the data
+    emit('submitted', result.data?.[0] || {});
+    
+  } catch (error) {
+    console.error('Error submitting project:', error);
+    errorMessage.value = error.message || 'Failed to save project. Please try again.';
+  } finally {
+    isSubmitting.value = false;
+  }
 };
 </script>
+

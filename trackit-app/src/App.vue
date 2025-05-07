@@ -41,6 +41,5 @@ onMounted(() => {
 </script>
 
 <style>
-@import './styles//index.css';
 @import './styles/themes.css';
 </style>

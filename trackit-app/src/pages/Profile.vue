@@ -182,7 +182,7 @@ const profileImage = ref(null);
 const passwordError = ref('');
 
 const profileForm = ref({
-  name: 'John Doe', // In a real app, get from store or Supabase
+  name: 'User', // In a real app, get from store or Supabase
   email: store.user?.email || 'user@example.com'
 });
 

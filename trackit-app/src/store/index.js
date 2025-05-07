@@ -1,5 +1,7 @@
+// src/store/index.js
 import { defineStore } from 'pinia'
 import { supabase } from '@/supabase/client'
+
 
 export const useStore = defineStore('main', {
   state: () => ({
@@ -13,11 +15,8 @@ export const useStore = defineStore('main', {
   
   getters: {
     isLoggedIn: (state) => !!state.user,
-    isDarkTheme: (state) => state.theme.includes('midnight') || 
-                           state.theme.includes('galaxy') || 
-                           state.theme.includes('forest-night') || 
-                           state.theme.includes('cyber-noir') ||
-                           state.theme.includes('solar-void')
+    isDarkTheme: (state) => 
+      ['midnight-code', 'galaxy-grape', 'forest-night', 'cyber-noir', 'solar-void'].includes(state.theme)
   },
   
   actions: {
@@ -32,20 +31,50 @@ export const useStore = defineStore('main', {
     },
     
     setTheme(themeName) {
+      console.log('Setting theme to:', themeName);
+      
+      // Update store state
       this.theme = themeName;
+      
+      // Apply theme to document
       document.documentElement.className = themeName;
       
+      // Check if we are in dark mode and update accordingly
+      if (this.isDarkTheme) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      
+      // Save to local storage as fallback
+      localStorage.setItem('user-theme', themeName);
+      
+      // Try to save to Supabase if user is logged in
       if (this.user) {
-        this.saveUserPreferences();
+        this.saveUserPreferences().catch(err => {
+          console.error('Failed to save theme to Supabase:', err);
+        });
       }
     },
     
     setFont(fontName) {
-      this.font = fontName;
-      document.documentElement.style.setProperty('--font-body', fontName);
+      console.log('Setting font to:', fontName);
       
+      // Update store state
+      this.font = fontName;
+      
+      // Apply font to document
+      document.documentElement.style.setProperty('--font-body', fontName);
+      document.documentElement.style.setProperty('--font-heading', fontName);
+      
+      // Save to local storage as fallback
+      localStorage.setItem('user-font', fontName);
+      
+      // Try to save to Supabase if user is logged in
       if (this.user) {
-        this.saveUserPreferences();
+        this.saveUserPreferences().catch(err => {
+          console.error('Failed to save font to Supabase:', err);
+        });
       }
     },
     
@@ -54,69 +83,91 @@ export const useStore = defineStore('main', {
     },
     
     async loadUserPreferences() {
-      if (!this.user) return;
+      console.log('Loading user preferences...');
       
-      const { data, error } = await supabase
-        .from('user_preferences')
-        .select('theme, font')
-        .eq('user_id', this.user.id)
-        .single();
-      
-      if (data && !error) {
-        this.setTheme(data.theme || 'ocean-breeze');
-        this.setFont(data.font || 'Inter');
-      } else {
-        // Set defaults if no preferences
-        this.setTheme('ocean-breeze');
-        this.setFont('Inter');
+      // Try to load from Supabase first
+      try {
+        if (this.user) {
+          console.log('Loading preferences for user:', this.user.id);
+          
+          const { data, error } = await supabase
+            .from('users')
+            .select('theme, font')
+            .eq('id', this.user.id)
+            .single();
+          
+          console.log('Preferences data from Supabase:', data, 'Error:', error);
+          
+          if (data && !error) {
+            if (data.theme) this.setTheme(data.theme);
+            if (data.font) this.setFont(data.font);
+            return;
+          }
+        }
+      } catch (error) {
+        console.error('Error loading preferences from Supabase:', error);
       }
+      
+      // Fall back to localStorage if Supabase fails or user not logged in
+      const storedTheme = localStorage.getItem('user-theme');
+      const storedFont = localStorage.getItem('user-font');
+      
+      if (storedTheme) this.setTheme(storedTheme);
+      if (storedFont) this.setFont(storedFont);
     },
     
     async saveUserPreferences() {
-      if (!this.user) return;
+      console.log('Saving user preferences...');
       
-      const { error } = await supabase
-        .from('user_preferences')
-        .upsert({
-          user_id: this.user.id,
-          theme: this.theme,
-          font: this.font
-        });
-        
-      if (error) {
-        console.error('Error saving user preferences:', error);
+      if (!this.user) {
+        console.log('No user logged in, saving to localStorage only');
+        localStorage.setItem('user-theme', this.theme);
+        localStorage.setItem('user-font', this.font);
+        return;
       }
-    },
-    
-    async loadProjects() {
-      if (!this.user) return;
       
-      const { data, error } = await supabase
-        .from('projects')
-        .select('*')
-        .eq('user_id', this.user.id)
-        .order('created_at', { ascending: false });
+      try {
+        console.log('Saving preferences to Supabase for user:', this.user.id);
         
-      if (data && !error) {
-        this.projects = data;
-      } else {
-        console.error('Error loading projects:', error);
-      }
-    },
-    
-    async loadTodos() {
-      if (!this.user) return;
-      
-      const { data, error } = await supabase
-        .from('todos')
-        .select('*')
-        .eq('user_id', this.user.id)
-        .order('created_at', { ascending: false });
+        // Check if profile already exists
+        const { data: existing } = await supabase
+          .from('users')
+          .select('id')
+          .eq('id', this.user.id)
+          .single();
         
-      if (data && !error) {
-        this.todos = data;
-      } else {
-        console.error('Error loading todos:', error);
+        let result;
+        
+        if (existing) {
+          // Update existing profile
+          result = await supabase
+            .from('users')
+            .update({
+              theme: this.theme,
+              font: this.font
+            })
+            .eq('id', this.user.id);
+        } else {
+          // Insert new profile
+          result = await supabase
+            .from('users')
+            .insert({
+              id: this.user.id,
+              theme: this.theme,
+              font: this.font
+            });
+        }
+        
+        console.log('Save result:', result);
+        
+        if (result.error) {
+          throw result.error;
+        }
+      } catch (error) {
+        console.error('Error saving preferences to Supabase:', error);
+        // Still save to localStorage as fallback
+        localStorage.setItem('user-theme', this.theme);
+        localStorage.setItem('user-font', this.font);
       }
     }
   }

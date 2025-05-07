@@ -154,7 +154,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useStore } from '@/store';
-import { supabase } from '@/supabase/client';
+import { supabase } from '../supabase/client';
 
 const store = useStore();
 const tasks = ref([]);

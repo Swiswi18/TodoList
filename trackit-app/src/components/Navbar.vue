@@ -14,7 +14,7 @@
           <div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center">
             {{ userInitials }}
           </div>
-          <span class="hidden md:block text-gray-800 dark:text-white">{{ userName }}</span>
+          
         </button>
         
         <div v-if="profileMenuOpen" class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-10">
@@ -46,9 +46,6 @@ const currentPage = computed(() => {
   return routeName ?? 'Dashboard';
 });
 
-const userName = computed(() => {
-  return store.user?.email ?? 'User';
-});
 
 const userInitials = computed(() => {
   if (!store.user) return 'U';
